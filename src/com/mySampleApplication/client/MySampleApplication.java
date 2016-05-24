@@ -8,10 +8,12 @@ import com.google.gwt.user.client.ui.*;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.datepicker.client.DatePicker;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import com.google.gwt.event.logical.shared.*;
 import com.mySampleApplication.server.MySampleApplicationServiceImpl;
-
+import  java.util.ArrayList;
 /**
  * Entry point classes define <code>onModuleLoad()</code>
  */
@@ -41,10 +43,29 @@ public class MySampleApplication implements EntryPoint {
         modalWindow.add(datePicker);
         modalWindow.add(OKButton);
 
-
         table.setText(0,0, "First Name");
         table.setText(0,1, "Second Name");
-        table.setText(0,2, "Surname Name");
+        Button sortButton=new Button("Surname Name");
+        sortButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                Collections.sort(employeeArrayList,new Comparator<Employee>() {
+                    @Override
+                    public int compare(Employee o1, Employee o2) {
+                        //Window.alert(String.valueOf(o1.surname.compareTo(o1.surname)));
+                        return o1.surname.compareTo(o2.surname);
+                    }
+                });
+                for (int i=0;i<employeeArrayList.size();i++) {
+                    table.setText(i+1,0,employeeArrayList.get(i).firstname);
+                    table.setText(i+1,1,employeeArrayList.get(i).secondName);
+                    table.setText(i+1,2,employeeArrayList.get(i).surname);
+                    table.setText(i+1,3,employeeArrayList.get(i).gender);
+                    table.setText(i+1,4, DateTimeFormat.getFormat("dd.MM.yy").format(employeeArrayList.get(i).dateOfEmployment));
+                }
+            }
+        });
+        table.setWidget(0,2, sortButton);
         table.setText(0,3,"Gender");
         table.setText(0,4,"Date of employment");
         table.setText(0,5,"Experience");
@@ -84,6 +105,7 @@ public class MySampleApplication implements EntryPoint {
             if (!(firstNameBox.getText().matches(template)&&secondNameBox.getText().matches(template)&&surnameBox.getText().matches(template))) {
                 Window.alert("Please, use only English letters");
             } else {
+
                 int row = table.getRowCount();
                 table.setText(row, 0, firstNameBox.getText());
                 table.setText(row, 1, secondNameBox.getText());
@@ -92,11 +114,70 @@ public class MySampleApplication implements EntryPoint {
                 table.setText(row, 4, DateTimeFormat.getFormat("dd.MM.yy").format(datePickerValue));
                 server.getMessage(datePickerValue.getTime(),callback);
                 /*table.setText(row, 5, calkExperience());*/
+                //table.setText(row, 5, employee.experience);
+                final Employee employee= new Employee(firstNameBox.getText(),
+                        secondNameBox.getText(),
+                        surnameBox.getText(),
+                        genderListBox.getSelectedItemText(),
+                        datePickerValue,
+                        lastServerAns);
+                employeeArrayList.add(employee);
+                Button removeStockButton = new Button("x");
+                removeStockButton.addClickHandler(new ClickHandler() {
+                    public void onClick(ClickEvent event) {
+                        int removeIndex=employeeArrayList.indexOf(employee);
+                        employeeArrayList.remove(employee);
+                        table.removeRow(removeIndex + 1);
+                    }
+                });
+                table.setWidget(row, 6, removeStockButton);
                 modalWindow.setVisible(false);
             }
         }
     }
 
+    class Employee {
+        String firstname;
+        String secondName;
+        String surname;
+        String gender;
+        Date dateOfEmployment;
+        String experience;
+        Employee(String _firstname,
+                 String _secondName,
+                 String _surname,
+                 String _gender,
+                 Date _dateOfEmployment,
+                 String _experience){
+            firstname=_firstname;
+            secondName=_secondName;
+            surname=_surname;
+            gender=_gender;
+            dateOfEmployment=_dateOfEmployment;
+            experience=_experience;
+        }
+
+        /*public int compareTo(Object obj)
+        {
+            Employee tmp = (Employee) obj;
+            *//*if(this.surname < tmp.surname)
+            {
+      *//**//* текущее меньше полученного *//**//*
+                return -1;
+            }
+            else if(this.surname > tmp.surname)
+            {
+      *//**//* текущее больше полученного *//**//*
+                return 1;
+            }
+    *//**//* текущее равно полученному *//**//*
+            return 0;*//*
+            return this.surname.compareTo(((Employee) obj).surname);
+        }*/
+    }
+
+    private String lastServerAns="ERROR";
+    private ArrayList<Employee> employeeArrayList = new ArrayList<Employee>();
     private Date datePickerValue=new Date();
     private TextArea d=new TextArea();
     private ListBox genderListBox=new ListBox();
@@ -117,6 +198,7 @@ public class MySampleApplication implements EntryPoint {
         }
         public void onSuccess(String result) {
             table.setText(table.getRowCount()-1, 5, result);
+            lastServerAns=result;
         }
     };
    /* private static class MyAsyncCallback implements AsyncCallback<String> {

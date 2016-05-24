@@ -15,7 +15,6 @@ public class MySampleApplicationServiceImpl extends RemoteServiceServlet impleme
     {
         Calendar SaveData = Calendar.getInstance();
         SaveData.setTimeInMillis(msg);
-        SaveData.setTime(new Date());
         Calendar currentData = Calendar.getInstance();
         Calendar result = Calendar.getInstance();
         result.setTimeInMillis(currentData.getTime().getTime() - SaveData.getTime().getTime());
